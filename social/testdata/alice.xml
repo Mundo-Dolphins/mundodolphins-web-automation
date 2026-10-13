@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>@alice.example.com - alice</title>
+    <link>https://bsky.app/profile/alice.example.com</link>
+    <description>Synthetic profile used by the tests.</description>
+    <item>
+      <link>https://bsky.app/profile/alice.example.com/post/3aaa1</link>
+      <guid>at://did:plc:alice/app.bsky.feed.post/3aaa1</guid>
+      <description>First post of alice</description>
+      <pubDate>Tue, 10 Mar 2026 18:30:00 +0000</pubDate>
+    </item>
+    <item>
+      <link>https://bsky.app/profile/alice.example.com/post/3aaa2</link>
+      <guid>at://did:plc:alice/app.bsky.feed.post/3aaa2</guid>
+      <description>Second post of alice</description>
+      <pubDate>Wed, 11 Mar 2026 09:00:00 +0000</pubDate>
+    </item>
+  </channel>
+</rss>

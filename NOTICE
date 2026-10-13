@@ -1,0 +1,13 @@
+mundodolphins-web-automation
+Copyright (c) 2026 Mundo Dolphins. Licensed under the MIT License (see LICENSE).
+
+* The Bluesky reader uses the public AT Protocol API of Bluesky and, as an
+  alternative, its public RSS feeds and oEmbed endpoint.
+* The GitHub client uses the official GitHub REST API.
+* The podcast reader parses standard RSS feeds published by podcast hosts.
+
+The module does not include code that scrapes third-party websites.
+
+Trademarks: Bluesky, GitHub, Instagram and any other name mentioned
+belong to their respective owners. This project is not affiliated with,
+endorsed by or sponsored by any of them.

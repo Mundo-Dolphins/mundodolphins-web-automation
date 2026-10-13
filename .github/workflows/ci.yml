@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  # Branches with an open PR are covered by pull_request; push only checks
+  # main so each commit runs CI once.
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# A newer commit on the same PR or branch cancels the run in progress.
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: Test release script
+        run: .github/scripts/test-next-patch-release.sh
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.14.0
+
+      - name: Test (race detector, coverage)
+        run: go test ./... -race -coverprofile=coverage.out -covermode=atomic
+
+      - name: Enforce coverage threshold
+        run: |
+          THRESHOLD=65
+          PCT=$(go tool cover -func=coverage.out | awk '/^total:/ {gsub("%","",$NF); print $NF}')
+          echo "Coverage: ${PCT}% (threshold ${THRESHOLD}%)"
+          awk -v p="$PCT" -v t="$THRESHOLD" 'BEGIN { exit (p+0 < t+0) }'

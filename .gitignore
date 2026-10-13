@@ -1,0 +1,28 @@
+# Credenciales: nunca se versionan
+.env
+.env.*
+!.env.example
+*.pem
+
+# Datos generados en ejecución (viven en el repositorio del sitio, no aquí)
+data/
+processed/
+*.log
+
+# Artefactos
+/web-automation
+build/
+dist/
+vendor/
+coverage.out
+coverage.html
+*.test
+go.work
+go.work.sum
+
+# Sistema / editores
+.DS_Store
+.idea/
+.vscode/
+*~
+*.swp
