@@ -28,6 +28,14 @@ type Result struct {
 	Linked int
 }
 
+// Link links the videos already stored in dataFolder/videos.json to the podcast
+// episodes, without reading any channel. Call it after adding episodes: a
+// video usually comes out before its episode is in the data, so it is left
+// without episode until the episode exists.
+func Link(dataFolder string) (Result, error) {
+	return Sync(nil, dataFolder)
+}
+
 // Sync merges videos into dataFolder/videos.json and links them to the
 // podcast episodes of the season_N.json files.
 //

@@ -111,6 +111,18 @@ func TestAPISourceErrorsDoNotLeakKey(t *testing.T) {
 	}
 }
 
+func TestAPISourceErrorShowsGoogleReason(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = w.Write([]byte(`{"error":{"code":403,"message":"Requests from referer <empty> are blocked.","errors":[{"reason":"ipRefererBlocked"}],"status":"PERMISSION_DENIED"}}`))
+	}))
+	defer srv.Close()
+	_, err := (&APISource{APIKey: "secret", ChannelID: "UCx", BaseURL: srv.URL}).Videos()
+	if err == nil || !strings.Contains(err.Error(), "HTTP status 403: ipRefererBlocked: Requests from referer") || strings.Contains(err.Error(), "secret") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 func TestFormatDuration(t *testing.T) {
 	for in, want := range map[string]string{"PT59S": "0:59", "PT5M": "5:00", "PT1H": "1:00:00", "P0D": "", "": ""} {
 		if got := formatDuration(in); got != want {

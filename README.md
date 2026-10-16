@@ -65,7 +65,7 @@ posterior con la API los completa. La clave viaja en una cabecera, nunca en la U
 `youtube` añade los vídeos nuevos a `videos.json` y **los enlaza a los episodios del podcast**: si el
 título coincide con el de un episodio, el vídeo se guarda en `episode.video` (y se marca
 `isPodcast`), para que la web lo incruste en la página del episodio. Se intenta con todos los
-vídeos, también con los ya guardados. `checker youtube` hace lo mismo y abre la PR en la rama
+vídeos, también con los ya guardados. `rss` y `checker rss` repiten el emparejamiento justo después de añadir episodios, así que un vídeo que salió antes que su episodio se enlaza en la misma PR del episodio. `checker youtube` hace lo mismo y abre la PR en la rama
 `YOUTUBE_WORK_BRANCH` (`new-youtube-videos` por defecto); las demás variables `YOUTUBE_*` siguen el
 patrón de `RSS_*`.
 
