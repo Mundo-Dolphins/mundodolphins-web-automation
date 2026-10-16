@@ -229,7 +229,35 @@ func get(client *http.Client, rawURL string, header map[string]string) ([]byte, 
 	}
 	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return nil, fmt.Errorf("YouTube returned HTTP status %d", resp.StatusCode)
+		body, _ := io.ReadAll(io.LimitReader(resp.Body, 64<<10))
+		return nil, fmt.Errorf("YouTube returned HTTP status %d%s", resp.StatusCode, apiErrorDetail(body))
 	}
 	return io.ReadAll(io.LimitReader(resp.Body, maxBodyBytes))
+}
+
+// apiErrorDetail extracts the reason Google gives in an error response
+// (": accessNotConfigured: ..."), or "" when the body is not a Google error.
+// Google's messages do not repeat the API key.
+func apiErrorDetail(body []byte) string {
+	var e struct {
+		Error struct {
+			Message string `json:"message"`
+			Errors  []struct {
+				Reason string `json:"reason"`
+			} `json:"errors"`
+			Status string `json:"status"`
+		} `json:"error"`
+	}
+	if json.Unmarshal(body, &e) != nil || (e.Error.Message == "" && len(e.Error.Errors) == 0) {
+		return ""
+	}
+	reason := e.Error.Status
+	if len(e.Error.Errors) > 0 && e.Error.Errors[0].Reason != "" {
+		reason = e.Error.Errors[0].Reason
+	}
+	msg := strings.TrimSpace(e.Error.Message)
+	if len(msg) > 300 {
+		msg = msg[:300] + "..."
+	}
+	return ": " + strings.Trim(reason+": "+msg, ": ")
 }

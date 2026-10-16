@@ -120,8 +120,23 @@ func rssFeedURL(fromEnv string) (string, error) {
 	return "", fmt.Errorf("no podcast feed configured: set RSS_FEED_URL")
 }
 
+// processRSSEpisodes adds the episodes and then links the stored videos to
+// them: a video that came out before its episode was in the data is attached
+// as soon as the episode is, in the same change.
 var processRSSEpisodes = func(episodes []podcast.Episode, dataFolder, since string, allSeasons bool) error {
-	return podcast.Sync(episodes, dataFolder, podcast.SyncOptions{Since: since, AllSeasons: allSeasons, PreferAudio: settings.PreferAudio})
+	if err := podcast.Sync(episodes, dataFolder, podcast.SyncOptions{Since: since, AllSeasons: allSeasons, PreferAudio: settings.PreferAudio}); err != nil {
+		return err
+	}
+	res, err := youtube.Link(dataFolder)
+	if err != nil {
+		// The episodes are already saved; do not lose them over the videos.
+		log.WithError(err).Warn("could not link videos to episodes")
+		return nil
+	}
+	if res.Linked > 0 {
+		log.WithField("linked", res.Linked).Info("videos linked to new episodes")
+	}
+	return nil
 }
 
 // youtubeSource is the source of the channel videos: the configured one, else
