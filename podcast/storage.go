@@ -19,6 +19,17 @@ type Episode struct {
 	Link        string `json:"link"`
 	Audio       string `json:"audio"`
 	Length      string `json:"len"`
+	// Video lists the video versions of the episode (for example on YouTube).
+	Video []VideoRef `json:"video,omitempty"`
+}
+
+// VideoRef is a video attached to an episode.
+type VideoRef struct {
+	Title       string `json:"title"`
+	Duration    string `json:"duration"`
+	URL         string `json:"url"`
+	PublishedAt string `json:"published_at"`
+	Embeddable  bool   `json:"embeddable"`
 }
 
 var location, _ = time.LoadLocation("America/New_York")

@@ -11,8 +11,10 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
+	"github.com/Mundo-Dolphins/mundodolphins-web-automation/autoconfig"
 	"github.com/Mundo-Dolphins/mundodolphins-web-automation/podcast"
 	"github.com/Mundo-Dolphins/mundodolphins-web-automation/social"
+	"github.com/Mundo-Dolphins/mundodolphins-web-automation/youtube"
 )
 
 // Options carries everything that depends on who runs the automation.
@@ -23,6 +25,11 @@ type Options struct {
 	FeedURL string
 	// FeedParser reads the podcast feed. Defaults to &podcast.RSSParser{}.
 	FeedParser podcast.FeedParser
+	// YouTubeChannelID is the channel read when YOUTUBE_CHANNEL_ID is not set.
+	YouTubeChannelID string
+	// YouTubeSource reads the channel videos. By default it is the YouTube Data
+	// API when YOUTUBE_API_KEY is set, else the channel Atom feed.
+	YouTubeSource youtube.Source
 	// Social reads the social posts. Defaults to a social.Reader without
 	// Instagram (see social.InstagramSource).
 	Social social.ReaderInterface
@@ -40,7 +47,7 @@ var settings Options
 
 var debug bool
 
-// New builds the root command with the rss, social, social-autopr and checker
+// New builds the root command with the rss, youtube, social, social-autopr and checker
 // subcommands. Callers can add their own subcommands to the result.
 func New(opts Options) *cobra.Command {
 	if opts.Use == "" {
@@ -70,7 +77,13 @@ func New(opts Options) *cobra.Command {
 	social := NewSocialCmd(opts.Social)
 	social.Flags().String("data", "./data", "Data folder")
 
-	root.AddCommand(rss, social, NewSocialAutoPRCmd(opts.Social), NewCheckerCmd(opts.FeedParser, opts.Social))
+	yt := NewYouTubeCmd()
+	yt.Flags().String("data", "./data", "Data folder")
+
+	checker := NewCheckerCmd(opts.FeedParser, opts.Social)
+	checker.AddCommand(NewCheckerYouTubeCmd())
+
+	root.AddCommand(rss, yt, social, NewSocialAutoPRCmd(opts.Social), checker)
 	return root
 }
 
@@ -109,4 +122,32 @@ func rssFeedURL(fromEnv string) (string, error) {
 
 var processRSSEpisodes = func(episodes []podcast.Episode, dataFolder, since string, allSeasons bool) error {
 	return podcast.Sync(episodes, dataFolder, podcast.SyncOptions{Since: since, AllSeasons: allSeasons, PreferAudio: settings.PreferAudio})
+}
+
+// youtubeSource is the source of the channel videos: the configured one, else
+// the YouTube Data API when there is an API key, else the channel feed.
+func youtubeSource(yt autoconfig.YouTubeSettings) (youtube.Source, error) {
+	if settings.YouTubeSource != nil {
+		return settings.YouTubeSource, nil
+	}
+	if yt.ChannelID == "" {
+		yt.ChannelID = settings.YouTubeChannelID
+	}
+	if yt.APIKey != "" {
+		if yt.ChannelID == "" {
+			return nil, fmt.Errorf("YOUTUBE_API_KEY needs YOUTUBE_CHANNEL_ID")
+		}
+		return &youtube.APISource{APIKey: yt.APIKey, ChannelID: yt.ChannelID, MaxPages: yt.MaxPages}, nil
+	}
+	if yt.FeedURL == "" && yt.ChannelID != "" {
+		yt.FeedURL = youtube.FeedURL(yt.ChannelID)
+	}
+	if yt.FeedURL == "" {
+		return nil, fmt.Errorf("no YouTube source configured: set YOUTUBE_CHANNEL_ID (and YOUTUBE_API_KEY for duration and embeddable)")
+	}
+	return &youtube.RSSSource{FeedURL: yt.FeedURL}, nil
+}
+
+var processYouTubeVideos = func(videos []youtube.Video, dataFolder string) (youtube.Result, error) {
+	return youtube.Sync(videos, dataFolder)
 }
