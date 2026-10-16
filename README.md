@@ -15,6 +15,7 @@ con el resultado. Es la base de la automatización del sitio de [Mundo Dolphins]
 | Fuente | Cómo |
 |---|---|
 | Feed RSS de podcast | Estándar (RSS 2.0 + extensiones iTunes), cualquier plataforma que lo publique |
+| Feed Atom de un canal de YouTube | Feed público oficial (`feeds/videos.xml?channel_id=...`) |
 | Bluesky | API pública oficial (`public.api.bsky.app`), con RSS/oEmbed como alternativa |
 | GitHub | API oficial para abrir PRs; `git` mediante `os/exec` |
 | Páginas web de podcast | **No incluido.** Interfaz `podcast.PageScraper` |
@@ -29,8 +30,9 @@ implementa las interfaces en tu propio código; esa implementación es responsab
 | Paquete | Para qué |
 |---|---|
 | `podcast` | Modelo `Episode`, lector RSS (`RSSParser`), reparto por temporadas y sincronización con `season_N.json` |
+| `youtube` | Modelo `Video`, lector del feed de un canal y sincronización con `videos.json` (marca `isPodcast` si el título coincide con un episodio) |
 | `social` | Modelo `OutputPost`, lector de Bluesky (`Reader`) e interfaz `InstagramSource` |
-| `cli` | Comandos `rss`, `social`, `social-autopr`, `checker` (cobra), inyectables con `cli.Options` |
+| `cli` | Comandos `rss`, `youtube`, `social`, `social-autopr`, `checker` (`rss`, `youtube`, `social`) (cobra), inyectables con `cli.Options` |
 | `autopr`, `gitops`, `github` | Rama de trabajo → commit → push → PR, con locks, reintentos y secretos redactados |
 | `autoconfig`, `filelock`, `retryhttp` | Configuración por entorno, lock de fichero (solo Unix) y reintentos HTTP |
 
@@ -49,7 +51,23 @@ export SOCIAL_BSKY_PROFILES=alice.example.com
 
 go run ./cmd/web-automation rss --data ./data
 go run ./cmd/web-automation social --data ./data
+
+export YOUTUBE_CHANNEL_ID=UCxxxxxxxxxxxxxxxxxxxxxx   # o YOUTUBE_FEED_URL
+go run ./cmd/web-automation youtube --data ./data
 ```
+
+Con `YOUTUBE_API_KEY` (y `YOUTUBE_CHANNEL_ID`) lee los envíos del canal con la **API de YouTube Data**,
+que da la duración y si cada vídeo se puede incrustar; `YOUTUBE_MAX_PAGES` limita las páginas de 50
+vídeos (4 por defecto). Sin clave usa el feed público, que solo trae los últimos ~15 vídeos y no
+incluye esos datos: los vídeos salen con `duration` vacía y `embeddable: true`, y una ejecución
+posterior con la API los completa. La clave viaja en una cabecera, nunca en la URL.
+
+`youtube` añade los vídeos nuevos a `videos.json` y **los enlaza a los episodios del podcast**: si el
+título coincide con el de un episodio, el vídeo se guarda en `episode.video` (y se marca
+`isPodcast`), para que la web lo incruste en la página del episodio. Se intenta con todos los
+vídeos, también con los ya guardados. `checker youtube` hace lo mismo y abre la PR en la rama
+`YOUTUBE_WORK_BRANCH` (`new-youtube-videos` por defecto); las demás variables `YOUTUBE_*` siguen el
+patrón de `RSS_*`.
 
 `social-autopr` y `checker` además escriben en un clon del repositorio del sitio, empujan una rama
 fija y abren (o actualizan) una PR; necesitan `GITHUB_OWNER`, `GITHUB_REPO`, `GITHUB_TOKEN` y

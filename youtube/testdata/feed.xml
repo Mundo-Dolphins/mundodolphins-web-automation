@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:yt="http://www.youtube.com/xml/schemas/2015" xmlns:media="http://search.yahoo.com/mrss/" xmlns="http://www.w3.org/2005/Atom">
+ <title>Canal</title>
+ <entry>
+  <id>yt:video:LLtDVyZsiFI</id>
+  <yt:videoId>LLtDVyZsiFI</yt:videoId>
+  <title>Nos invade la jungla hispánica</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=LLtDVyZsiFI"/>
+  <published>2026-10-08T17:28:20+00:00</published>
+  <updated>2026-10-10T15:00:30+00:00</updated>
+ </entry>
+ <entry>
+  <id>yt:video:0BYCsy0fbSo</id>
+  <yt:videoId>0BYCsy0fbSo</yt:videoId>
+  <title>Los Miami ¿Packers?</title>
+  <link rel="alternate" href="https://www.youtube.com/watch?v=0BYCsy0fbSo"/>
+  <published>2026-01-28T19:11:47+00:00</published>
+  <updated>2026-01-28T19:11:47+00:00</updated>
+ </entry>
+</feed>
