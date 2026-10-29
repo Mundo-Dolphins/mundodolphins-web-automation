@@ -1,6 +1,6 @@
 module github.com/Mundo-Dolphins/mundodolphins-web-automation
 
-go 1.26.0
+go 1.27.3
 
 require (
 	github.com/jarcoal/httpmock v1.4.2
