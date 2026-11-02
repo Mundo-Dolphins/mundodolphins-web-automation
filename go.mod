@@ -7,7 +7,7 @@ require (
 	github.com/mmcdole/gofeed v1.5.0
 	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/cobra v1.10.2
-	golang.org/x/net v0.61.0
+	golang.org/x/net v0.62.0
 )
 
 require (
